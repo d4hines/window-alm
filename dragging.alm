@@ -127,15 +127,17 @@ theory window_motion
                 target(X) = Window,
                 diff(X) = (XDiff, YDiff).
             
+            % The "triggers" keyword causes an action to be immediately executed.
             occurs(X) triggers snap(Window)
                 instance(X, drag),
                 target(X) = Window.
             
-
-            % (The next two are identical except one is for X,
+            % The snap action snaps the window to the window with which
+            % it is closestAligned.
+            % (The next two axioms are identical except one is for the X axis,
             % and the other is for Y. Is there a way to consolidate?)
             occurs(X) causes position(Window) = (X + Diff, Y)
-                instance(X, drag),
+                instance(X, snap),
                 target(X) = Window,
                 position(Window) = (X, Y).
                 closestAligned(Window, SnapTarget, Dir),
@@ -146,7 +148,7 @@ theory window_motion
                 axis(Dir) = x.
 
             occurs(X) causes position(Window) = (X, Y + Diff)
-                instance(X, drag),
+                instance(X, snap),
                 target(X) = Window,
                 position(Window) = (X, Y).
                 closestAligned(Window, SnapTarget, Dir),
