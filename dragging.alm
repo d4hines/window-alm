@@ -9,35 +9,32 @@ theory window_motion
             drag :: actions
                 attributes
                     target : windows
-                    diff : (integers, integers)
-            snap :: actions
-                attributes
-                    target : windows
+                    offset : axes -> integers
         function declarations
             statics
-                oppositeDir : directions -> directions
+                oppositeDirection : directions -> directions
                 oppositeAxis : axes -> axes
-                axis : edge -> axes
-                comparisonFactor : directions -> { -1, 1}
+                axis : directions -> axes
+                directionFactor : directions -> { -1, 1 }
             fluents
                 basic
                     total id : windows -> integers
-                    total position : windows -> (integers, integers)
+                    total coordinate : windows x axes -> integers
                     total width : windows -> integers
                     total height : windows -> integers
                 defined
                     total edge : windows x directions -> integers
-                    total distance : windows x windows x directions -> integers
-                    total aligned : windows x windows x axes -> booleans
-                    notClosest : windows x windows x directions -> booleans
-                    closestAligned : windows x windows x directions -> booleans
+                    total onSameLine : windows x windows x axes -> booleans
+                    distance : windows x windows x directions -> integers
+                    nearestEdge : windows x windows -> directions
+                    cannotSnap : windows x windows x directions -> booleans
+                    canSnap : windows x windows x directions -> booleans
+                    possibleCoordinate : windows x axes -> integers
         axioms
-            %%%%% Static relationships %%%%%%
-            % (I'm not sure where these go)
-
-            oppositeDir(left) = right.
-            oppositeDir(top) = bottom.
-            oppositeDir(A) = B if oppositeDir(B) = A.
+            %%%%%% Static Relationships %%%%%%%%
+            oppositeDirection(left) = right.
+            oppositeDirection(top) = bottom.
+            oppositeDirection(A) = B if oppositeDirection(B) = A.
 
             oppositeAxis(x) = y.
             oppositeAxis(y) = x.
@@ -47,13 +44,15 @@ theory window_motion
             axis(top) = y.
             axis(bottom) = y.
 
-            comparisonFactor(left) = -1.
-            comparisonFactor(top) = -1.
-            comparisonFactor(right) = 1.
-            comparisonFactor(bottom) = 1.
-
-            %%%%%% Truely fluent relationships. %%%%%%%
-
+            % directionFactor represent the notion that to move right
+            % along the X axis is to move a positive amount, while to
+            % move left is to move a negative amount (etc. for the Y axis).
+            directionFactor(right) = 1.
+            directionFactor(left) = -1.
+            directionFactor(bottom) = 1.
+            directionFactor(top) = -1.
+    
+            %%%%%% Fluent relationships. %%%%%%%
             % Windows have four derived edges.
             edge(Win, left) = X if
                 position(Win) = (X, Y).
@@ -64,96 +63,131 @@ theory window_motion
             edge(Win, bottom) = Y + H if
                 height(Win) = H.
             
-            aligned(A, B, x) if
-                edge(A, left) = ALeft,
-                edge(A, right) = ARight,
-                edge(B, left) = BLeft,
-                edge(B, right) = BRight,
+            % Windows A and B are onSameLine w.r.t. an axis Axis iff there
+            % is a line perpendicular to Axis A that crosses both A and B.
+            %
+            % For the X axis, this will hold if the following are true:
+            % - The coordinate of the left edge of A is less than coordinate
+            %   of the right edge of B.
+            % - The coordinate of the right edge of A is greater than the coordinate
+            %   of the left edge of B.
+            %
+            % The derivation for Y simply switches left for top and right for bottom.
+            onSameLine(A, B, Axis) if
+                edge(A, Direction) = A1,
+                oppositeDirection(Direction) = Opposite
+                edge(A, Opposite) = A2,
+                edge(B, Direction) = B1,
+                edge(B, Opposite) = B2,
                 A != B,
-                ALeft < BRight,
-                ARight > BLeft.
+                A1 < B2,
+                A2 > B1.
+            % onSameLine is a symmetric relationship.
+            onSameLine(A, B, Axis) if onSameLine(B, A, Axis).
+            
+            % Two windows A and B overlap iff they are onSameLine w.r.t to both the 
+            % X and Y axes.
+            overlap(A, B) if
+                onSameLine(A, B, x),
+                onSameLine(A, B, y).
+            
+            % The distance between two windows A and B is the length of the shortest
+            % line segment that connects opposite edges on A and B (top of A to bottom of B, etc.).
+            % Distance is always positive. distance is only defined if A and B are onSameLine w.r.t
+            % some axis. distance is undefined if A and B overlap.
+            distance(A, B) = L1 if
+                direction(Dir),
+                axis(Dir) = Axis,
+                onSameLine(A, B, Axis),
+                -overlap(A, B),
+                % There are two possible values for the length of the line segments that connect
+                % opposite edges. We'll call the first L1 and the second L2.
+                oppositeDirection(Dir) = O,
+                edge(A, Dir) = A1,
+                edge(B, O) = B1,
+                L1 = A1 - B1,
+                edge(A, O) = A2,
+                edge(B, Dir) = B2,
+                L2 = A2 - B2,
+                % L1 is the distance iff L1 is less than L2.
+                L1 < L2.
 
-            aligned(A, B, y) if
-                edge(A, top) = ATop,
-                edge(A, bottom) = ABottom,
-                edge(B, top) = BTop,
-                edge(B, bottom) = BBottom,
-                A != B,
-                ATop < BBottom,
-                ABottom > BTop.
+            % Given windows A and B, the nearestEdge of A is edge closest to B.
+            % nearestEdge is only defined when there is some distance between A and B.
+            nearestEdge(A, B) = right if
+                distance(A, B) = D,
+                edge(A, left) = E1,
+                edge(B, left) = E2,
+                E1 < E2.
 
-            % distance is the measure between windows w.r.t to oppositeDir edges.
-            % distance can be negative. However, the comparisonFactor is used to
-            % relativize the distance w.r.t the direction Dir. For example, given
-            % window A at position (0,0) with width 10, and window B at (-20, 0)
-            % with width 10, the distance between A and B w.r.t left is 10, while
-            % distance between B and A w.r.t left is -20.
-            distance(A, B, Dir) = D if
-                edge(A, Dir) = E1,
-                oppositeDir(Dir) = O,
-                edge(B, O) = E2,
-                comparisonFactor(Dir) = F,
-                D = (E2 - E1) * F.
+            nearestEdge(A, B) = bottom if
+                distance(A, B),
+                edge(A, top) = E1,
+                edge(B, top) = E2,
+                E1 < E2.
+            
+            nearestEdge(A, B) = Dir if
+                oppositeDirection(Dir) = O
+                nearestEdge(B, A, O).
 
-            % If window B is closestAligned to window A w.r.t direction Dir,
-            % then window A and B must have a non-negative distance w.r.t to Dir.
-            % The axiom below is the contrapositive.
-            notClosestAligned(A, B, Dir) if distance(A, B, Dir) < 0.
-
-            % If window B is be closestAligned to window A w.r.t direction Dir,
-            % then A and B must be aligned w.r.t to the axis opposite the axis of Dir.
-            % The axiom below is the contrapositive.
-            notClosestAligned(A, B, Dir) if
-                axis(Dir) = A,
-                oppositeAxis(A) = O,
-                -aligned(A, B, O).
-    
-            % Given windows A, B, and C, if C is closer to A than B w.r.t to direction Dir,
-            % then B is notClosestAligned to A w.r.t to Dir.
-            notClosestAligned(A, B, Dir) if
+            % Given windows A and B, A canSnap to B if the the distance between A
+            % and B is less than or equal to the snapping threshold and there is no other window C
+            % that is closer to A.
+            %
+            % To determine the last condition, we define cannotSnap, which is true if there is some C closer
+            % to A than B.
+            cannotSnap(A, B) if
                 distance(A, B, Dir) = D1,
-                distance(C, B, Dir) = D2,
-                axis(Dir) = A,
-                oppositeAxis(A) = O,
-                aligned(A, B, O),
-                | D2 | < | D1 |.
-    
-            %(Should this be classical or default negation?)
-            closestAligned(A, B, Dir) if not notClosestAligned(A, B Dir).
-
-            % If no windows are in snapping range, the drag is normal.
-            occurs(X) causes position(Window) = (X + XDiff, Y + YDiff) if 
-                instance(X, drag),
-                target(X) = Window,
-                diff(X) = (XDiff, YDiff).
+                distance(A, C, Dir) = D2,
+                D2 < D1.
             
-            % The "triggers" keyword causes an action to be immediately executed.
-            occurs(X) triggers snap(Window)
-                instance(X, drag),
-                target(X) = Window.
-            
-            % The snap action snaps the window to the window with which
-            % it is closestAligned.
-            % (The next two axioms are identical except one is for the X axis,
-            % and the other is for Y. Is there a way to consolidate?)
-            occurs(X) causes position(Window) = (X + Diff, Y)
-                instance(X, snap),
-                target(X) = Window,
-                position(Window) = (X, Y).
-                closestAligned(Window, SnapTarget, Dir),
-                oppositeDir(Dir) = O,
-                edge(Window, Dir) = WindowEdge,
-                edge(SnapTarget, O) = SnapTargetEdge,
-                Diff = SnapTargetEdge - WindowEdge,
-                axis(Dir) = x.
+            canSnap(A, B) if
+                distance(A, B, Dir) = D,
+                not cannotSnap(A, B),
+                D <= snapping_threshold.
 
-            occurs(X) causes position(Window) = (X, Y + Diff)
-                instance(X, snap),
-                target(X) = Window,
-                position(Window) = (X, Y).
-                closestAligned(Window, SnapTarget, Dir),
-                oppositeDir(Dir) = O,
-                edge(Window, Dir) = WindowEdge,
-                edge(SnapTarget, O) = SnapTargetEdge,
-                Diff = SnapTargetEdge - WindowEdge,
-                axis(Dir) = y.
+            % Dragging by some offset O causes the window to be displaced by O.
+            % The offset alone does not determine the windows final position, since
+            % other relationships can further alter the final position.
+            occurs(Drag) causes possibleCoordinate(Window, Axis) = Coord + O if
+                instance(Drag, drag),
+                target(Drag) = Window,
+                coordinate(Window, Axis) = Coord,
+                offset(Drag, Axis) = O.
+
+            % If, after dragging a window, the window cannotSnap to another window, then the
+            % final coordinates are identical to the possibleCoordinates.
+            coordinate(Window, Axis) if
+                possibleCoordinate(Window, Axis),
+                window(OtherWindow),
+                not canSnap(Window, OtherWindow).
+
+            % If, after dragging window A, A canSnap to another window B, the final coordinates
+            % of A are obtained by moving A by the distance between A and B in the direction of
+            % the nearestEdge of A to B.
+            coordinate(A, Axis) = FinalCoord if
+                possibleCoordinate(A, Axis) = Coord,
+                window(B),
+                canSnap(A, B),
+                distance(A, B) = Distance,
+                nearestSide(A, B) = Dir,
+                axis(Direction) = Axis,
+                directionFactor(Dir) = F,
+                FinalCoor = Coord + Distance * F.
+
+            % When a window snaps to another window, it only moves along a single axis. That is,
+            % only one coordinate is changed from it possibleCoordinate value.
+            % (I don't know how best to capture this notion. It feels like something that should
+            % be represented by inertia. If snapping only changes one coordinate value why should it
+            % be necessary to say the other coordinate value has not changed?
+            %
+            % In the version that represented coordinates as a pair, I did not have this problem;
+            % however, the present version is much cleaner over all, so I happy to make this trade-off.
+            % Still, can you think of any cleaner solutions?)
+            coordinate(A, OppositeAxis) = Coord if
+                possibleCoordinate(A, Axis) = Coord,
+                window(B),
+                canSnap(A, B),
+                nearestSide(A, B) = Dir,
+                axis(Dir) = Axis,
+                oppositeAxis(Axis) = OppositeAxis
