@@ -25,11 +25,12 @@ theory window_motion
                 defined
                     total edge : windows x directions -> integers
                     total onSameLine : windows x windows x axes -> booleans
-                    distance : windows x windows x directions -> integers
-                    nearestEdge : windows x windows -> directions
+                    stationary : windows -> booleans
+                    distance : windows x windows x directions x integers -> booleans
+                    nearestEdge : windows x windows x directions -> booleans
                     cannotSnap : windows x windows x directions -> booleans
                     canSnap : windows x windows x directions -> booleans
-                    possibleCoordinate : windows x axes -> integers
+                    possibleCoordinate : windows x axes x integers -> booleans
         axioms
             %%%%%% Static Relationships %%%%%%%%
             oppositeDirection(left) = right.
@@ -114,19 +115,19 @@ theory window_motion
 
             % Given windows A and B, the nearestEdge of A is edge closest to B.
             % nearestEdge is only defined when there is some distance between A and B.
-            nearestEdge(A, B) = right if
+            nearestEdge(A, B, right) if
                 distance(A, B) = D,
                 edge(A, left) = E1,
                 edge(B, left) = E2,
                 E1 < E2.
 
-            nearestEdge(A, B) = bottom if
+            nearestEdge(A, B, bottom)if
                 distance(A, B),
                 edge(A, top) = E1,
                 edge(B, top) = E2,
                 E1 < E2.
             
-            nearestEdge(A, B) = Dir if
+            nearestEdge(A, B, Dir) if
                 oppositeDirection(Dir) = O
                 nearestEdge(B, A, O).
 
@@ -136,16 +137,37 @@ theory window_motion
             %
             % To determine the last condition, we define cannotSnap, which is true if there is some C closer
             % to A than B.
-            cannotSnap(A, B) if
-                distance(A, B, Dir) = D1,
-                distance(A, C, Dir) = D2,
-                D2 < D1.
-            
-            canSnap(A, B) if
-                distance(A, B, Dir) = D,
-                not cannotSnap(A, B),
-                D <= snapping_threshold.
+            outOfRange(A, B) if
+                distance(A, B) = D,
+                D > snapping_threshold.
 
+            % A is not closest to be B if there is a C which is closer to B than A.
+            notClosest(A, B) if
+                distance(A, B) = D1,
+                distance(C, B) = D2,
+                D2 < D1.
+        
+            % A is closest to B if there is no window closer to B than A.
+            closest(A, B) if
+                -notClosest(A,B).
+            
+            % Stationary window A attracts moving window B in direction D if:
+            % A is closest to B,
+            % A is inRange of B,
+            % The nearest edge of A is in direction D.
+
+            attracts(A, B, D) if
+                stationary(A),
+                -outOfRange(A, B),
+                closest(A, B).
+            
+            % Stationary windows A and B are inConflict with window C if:
+            % A attracts C in one direction, but B attracts C in another direction.
+
+            % A snaps to B if B attracts A and there is no window is in conflict with B
+            % w.r.t A.
+            
+            % coordina
             % Dragging by some offset O causes the window to be displaced by O.
             % The offset alone does not determine the windows final position, since
             % other relationships can further alter the final position.
