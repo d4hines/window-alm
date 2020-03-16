@@ -7,9 +7,27 @@ Highlighted text represents ALM code.
 theory windows
     module movement
 ```
-## Sorts
+## Overview
 
-### Sorts            
+We will first give an informal description of window movement in the Finsemble
+system.
+
+Windows are rectangles that provide user interfaces into applications running on
+the desktop. A major of feature provided by Finsemble is the ability to group
+windows together in various ways.
+
+A window's position is represented by a pair of X and Y coordinates. The coordinates are
+derived from "precoordinates". By clicking and dragging a window, users can set a window's
+precoordinates. Normally, the actual coordinates are equivalent to the precoordinates; however,
+in special cases described below, extra calculation is done on the precoordinates to determine
+the actual coordinates.
+
+The primary special case is called "snapping". Moving windows exhibit a behavior analagous to magnets,
+snapping to other nearby windows or the inside edges of monitors. 
+
+
+
+### Sorts
 ```
 sort declarations
 ```
@@ -20,8 +38,6 @@ sort declarations
     rectangles :: universe
     ```
 1. Windows
-
-   Windows are rectangles that provide user interfaces into applications running on the desktop.
 
     ```
     windows :: rectangles
@@ -175,7 +191,7 @@ basic
     ```
 1. On Same Line
 
-    Two windows are on the same line w.r.t. an axis if there is a line on that axis that crosses both windows.
+    Two windows are on the same line w.r.t. an axis if there is a line perpendicular to that axis that crosses both windows.
 
     ```
     onSameLine : windows x windows x axes -> booleans
@@ -186,28 +202,29 @@ basic
     overlaps : rectangles x rectangles -> booleans
     ```
 1. Closest
+
     One or more rectangles may be closest to a given rectangle if there are no other closer rectangles.
     ```
     closest : rectangles x rectangles -> booleans
     ```
 1. Final Coordinates
-
+    ()
     A window's final coordinates identify its coordinates after special conditions (if any) are applied.
     
     ```
     finalCoordinate : windows x axes x integers -> booleans
     ``` 
-1. Snaps
+1. Snapped
 
     A window may snap to another rectangle after movement.
     ```
-    snaps : windows x rectangles -> booleans
+    snapped : windows x rectangles -> booleans
     ```
-1. Snaps to Corner
+1. Snapped to Corner
 
     As a special case of snapping, a window may snap to the corner of another rectangle after movement.
     ```
-    snapsCorner : windows x rectangles -> booleans
+    snappedToCorner : windows x rectangles -> booleans
     ```
 
 1. Moving and Stationary
@@ -224,12 +241,12 @@ basic
     ```
     occurs(Action) causes coordinate(Window, Axis, NewCoord) if
         instance(Action, move),
-        mover(Action) = Window,
+        [movingObject or synonym](Action) = Window,
         distance(Action) = D,
         direction(Action) = Dir,
         axis(Dir) = Axis,
         directionFactor(Dir) = F,
-        coordinate(Window, Axis) = Coord,
+        coordinate(Window, Axis, Coord),
         Coord + (D * F) = NewCoord
     ```
 
@@ -237,37 +254,39 @@ basic
 
     ```
     occurs(Action) causes moving(Window) if
+        instance(Action, move),
         mover(Action) = Window.
     ```
 1. Dragging a window causes every other window to become stationary (i.e, not moving).
 
     ```
     occurs(Action) causes -moving(Window) if
+        instance(Action, move),
         mover(Action) = MovingWindow,
         Window != MovingWindow.
     ``` 
 
 ### Defined Fluent Axioms
-1. Window A snaps to rectangle B if:
+1. Window A is snapped to rectangle B if:
     - A is moving.
     - B attracts A along direction D.
     - Nothing attracts A in some other direction.
     ```
-    snaps(A, B) if
+    snapped(A, B) if
         moving(A),
         attracts(B, A, Dir),
         #count { C : attracts(C, A, Dir'),  Dir' != Dir } = 0
     ```
-1. Window A snaps to the corner of rectangle B if:
-    - A snaps to B.
+1. Window A is snapped to the corner of rectangle B if:
+    - A is snapped to B.
     - The nearest side of A to B is Dir
     - The nearest corner of A to B is (Dir, Dir'), where Dir' is orthogonal to Dir (see
     definition of nearest corner).
     - This distance between the Dir' side of A and the Dir' side of B is less than the corner snapping threshold.
 
     ```
-    snapsCorner(A, AX', NewCoord) if
-            snaps(A, B),
+    snappedToCorner(A, AX', NewCoord) if
+            snapped(A, B),
             nearestSide(A, B, Dir),
             axis(Dir) = AX,
             oppositeAxis(AX) = AX'
@@ -280,13 +299,13 @@ basic
 
    The final coordinate of window A w.r.t axis AX equals the like coordinate of A moved by
    the distance D in direction Dir, where:
-      - A snaps to B.
+      - A is snapped to B.
       - The distance between A and B is D.
-      - The nearest side of A to B.
+      - The nearest side of A to B is Dir.
 
         ```
         finalCoordinate(A, AX, NewCoord) if
-            snaps(A, B),
+            snapped(A, B),
             distance(A, B, D),
             nearestSide(A, B, Dir),
             axis(Dir) = AX,
@@ -294,13 +313,14 @@ basic
             directionFactor(Dir) = F,
             Coord + D * F = NewCoord.
         ```
-    The final coordinate of the other axis AX' depends on whether A snaps to the corner of B:
+    The final coordinate of the other axis AX' depends on whether A is snapped to the
+    corner of B:
     1. The final coordinate of A w.r.t. axis AX' are moved by the distance and in the direction
-        of the nearest corner of A to B if A snaps to the corner of B.
+        of the nearest corner of A to B if A is snapped to the corner of B.
         ```
         finalCoordinate(A, AX', NewCoord) if
-            snaps(A, B),
-            snapsCorner(A, B),
+            snapped(A, B),
+            snappedToCorner(A, B),
             nearestSide(A, B, Dir),
             axis(Dir) = AX,
             oppositeAxis(AX) = AX'
@@ -314,8 +334,8 @@ basic
     1. The final coordinates of A w.r.t axis AX' remain unchanged if A does not snap to the corner of B.
         ```
         finalCoordinate(A, AX', Coord) if
-            snaps(A, B),
-            -snapsCorner(A, B),
+            snapped(A, B),
+            -snappedToCorner(A, B),
             nearestSide(A, B, Dir),
             axis(Dir) = AX,
             oppositeAxis(Axis) = AX'
@@ -325,7 +345,7 @@ basic
     ```
     finalCoordinate(Window, Axis, Coord) if
         coordinate(Window, Axis) = Coord,
-        #count { Other : snaps(Window, Other) } = 0.
+        #count { Other : snapped(Window, Other) } = 0.
     ```
 
 3. Distance is defined differently when measuring between two windows and between a window and
@@ -493,3 +513,18 @@ basic
     ```
     nearestCorner(A, B, Dir, Dir') if nearestCorner(A, B, Dir', Dir).
     ```
+
+
+
+## random
+
+closestWindow : windows x windows x booleans
+closestGroup : groups x groups x booleans
+change definition of canSnap to use the groups x groups version of closest
+
+resize simply uses canSnap as well.
+
+impossible to break a group except by a group breaking action (e.g. certain instances of toggling or closing)
+
+
+
