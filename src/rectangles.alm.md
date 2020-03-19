@@ -22,14 +22,10 @@ in ALM for use in later modules.
 #### Basic
 
 1. Width
-
-    Every rectangle has a width.
     ```
     total width : rectangles -> integers
     ```
 1. Height
-
-    Every rectangle has a height.
     ```
     total height : rectangles -> integers
     ```
@@ -40,12 +36,24 @@ in ALM for use in later modules.
     ```
     total coordinate : rectangles x axes -> integers
     ```
-### Defined
+#### Defined
 1. Side
 
     Each side of a rectangle is represented by a direction and an integer value indicating its placement on its respective asxis.
     ```
-    side : rectangle x directions x integers -> booleans.
+    side : rectangles x directions x integers -> booleans.
+    ```
+1. On Same Line
+
+    Two rectangles are on the same line w.r.t. an axis if there is a line perpendicular to that axis that crosses both rectangles.
+
+    ```
+    onSameLine : rectangles x rectangles x axes -> booleans
+    ```
+1. Overlaps
+
+    ```
+    overlaps : rectangles x rectangles -> booleans
     ```
 1. Nearest Side
 
@@ -65,21 +73,24 @@ in ALM for use in later modules.
     ```
     nearestCorner : rectangles x rectangles x directions x directions -> booleans
     ```
-
+    
 1. Distance
 
-    Distance is the measure between the nearest sides of two rectangles. Distance is defined differently
-    for different kinds of rectangles, so axioms will be given in later modules.
+    Distance is the measure between the nearest sides of two rectangles. Distance 
+    is irreflexive, and is also undefined between overlaping rectangles. Distance is not 
+    defined between every two rectangles. Namely, it is only defined between 
+    windows and other rectangles. See the [Window](windows.alm.md) module for axioms.
     ```
     distance : rectangles x rectangles x integers -> booleans
     ```
-1. On Same Line
+1. Closest
 
-    Two rectangles are on the same line w.r.t. an axis if there is a line perpendicular to that axis that crosses both rectangles.
+    A rectangle A is said to be closest to rectangle B if A is closer to B than every
+    other rectangle.
+   ```
+   closest : rectangles x rectangles -> booleans
+   ```
 
-    ```
-    onSameLine : rectangles x rectangles x axes -> booleans
-    ```
 
 ## Axioms
 1. Sides of a rectangle.
@@ -149,4 +160,11 @@ in ALM for use in later modules.
     The order of the directions is interchangeable.
     ```
     nearestCorner(A, B, Dir, Dir') if nearestCorner(A, B, Dir', Dir).
+    ```
+6. Rectangle A is closest to rectangle B if the distance between A and B is the minimum distance between A and any window (closest is not symmetric).
+
+    ```
+    closest(A, B) if
+        distance(A, B, D),
+        #count { C : distance(C, B, D'), D' < D } = 0.
     ```

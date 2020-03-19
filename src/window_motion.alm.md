@@ -11,7 +11,53 @@
 
     ```
 
-    1. Attracts
+    1. Attract9.  Nearest Side
+    1. Between windows:
+
+        The nearest side of window A to window B is the direction D where the measure between
+        side D of A and the opposite side of B is equal to the distance between A and B.
+
+        ```
+        nearestSide(A, B, Dir) if
+            instance(A, windows),
+            instance(B, windows),
+            side(A, Dir, EdgeA),
+            oppositeDirection(Dir) = Dir',
+            side(B, Dir', EdgeB),
+            distance(A, B) = D,
+            EdgeA - EdgeB = D.
+        
+        
+        ```
+
+        In the below picture, the nearest side of A to B is right, while the nearest side of B to A is left.
+        ![](https://i.imgur.com/zYOB0rS.png)
+
+    2. Between a window and a monitor
+
+        The nearest side of window W to monitor M is the direction D where the measure between
+        side D of W and side D of M is equal to the distance between W and M.
+
+        ```
+        nearestSide(W, M, Dir) if
+            instance(W, windows),
+            instance(M, monitors),
+            side(W, Dir, EdgeW),
+            side(M, Dir, EdgeM),
+            distance(W, M) = D,
+            EdgeW - Edge = D.
+        ```
+    
+    For both monitors and windows, the nearest side relation is symmetric about opposite directions:
+    ```
+    nearestSide(A, B, Dir) if
+        oppositeDirection(Dir) = Dir',
+        nearesetSide(B, A, Dir').
+    ```
+
+    The nearest side relation is undefined between two monitors.
+
+
 
     Two rectangles attract each other when they are in close proximity.
     ```
@@ -157,4 +203,65 @@
         coordinate(Window, Axis) = Coord,
         #count { Other : snapped(Window, Other) } = 0.
     ```
+
+5. Rectangle A attracts window B in direction D if:
+    - The distance between A and B is less than the snapping threshold.
+    - A is closest to B
+    - The nearest side of B to A is D
+
+    ```
+    attracts(A, B, D) if
+        distance(A, B) > snapping_threshold,
+        closest(A, B),
+        nearestSide(B, A, D).
+    ```
+    In the below picture, A attracts B left, while B attracts A right:
+    ![](https://i.imgur.com/zYOB0rS.png)
+
+
+9.  Nearest Side
+    1. Between windows:
+
+        The nearest side of window A to window B is the direction D where the measure between
+        side D of A and the opposite side of B is equal to the distance between A and B.
+
+        ```
+        nearestSide(A, B, Dir) if
+            instance(A, windows),
+            instance(B, windows),
+            side(A, Dir, EdgeA),
+            oppositeDirection(Dir) = Dir',
+            side(B, Dir', EdgeB),
+            distance(A, B) = D,
+            EdgeA - EdgeB = D.
+        
+        
+        ```
+
+        In the below picture, the nearest side of A to B is right, while the nearest side of B to A is left.
+        ![](https://i.imgur.com/zYOB0rS.png)
+
+    2. Between a window and a monitor
+
+        The nearest side of window W to monitor M is the direction D where the measure between
+        side D of W and side D of M is equal to the distance between W and M.
+
+        ```
+        nearestSide(W, M, Dir) if
+            instance(W, windows),
+            instance(M, monitors),
+            side(W, Dir, EdgeW),
+            side(M, Dir, EdgeM),
+            distance(W, M) = D,
+            EdgeW - Edge = D.
+        ```
+    
+    For both monitors and windows, the nearest side relation is symmetric about opposite directions:
+    ```
+    nearestSide(A, B, Dir) if
+        oppositeDirection(Dir) = Dir',
+        nearesetSide(B, A, Dir').
+    ```
+
+    The nearest side relation is undefined between two monitors.
 
