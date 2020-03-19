@@ -1,0 +1,19 @@
+{
+  "name": "window-alm",
+  "version": "0.1.0",
+  "description": "Description of window movement in the ALM action language.",
+  "main": "index.js",
+  "scripts": {
+    "publish": "surge ./book window-alm.surge.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d4hines/window-alm.git"
+  },
+  "author": "",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/d4hines/window-alm/issues"
+  },
+  "homepage": "https://github.com/d4hines/window-alm#readme"
+}
