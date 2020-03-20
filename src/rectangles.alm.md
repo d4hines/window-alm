@@ -96,8 +96,8 @@ in ALM for use in later modules.
 1. Sides of a rectangle.
    1. The value of the left side of a rectangle is equal to its X coordinate, and value of the top side to its y Coordinate.
         ```
-        side(Rectangle, left, Value) if coordinate(Rectangle, x, Value).
-        side(Rectangle, top, Value) if coordinate(Rectangle, y, Value).
+        side(Rectangle, left, Value) if coordinate(Rectangle, x) = Value.
+        side(Rectangle, top, Value) if coordinate(Rectangle, y) = Value.
         ```
    2. The value of the right side of a rectangle is equal to the value its left side plus its width. 
         Likewise, the value of the bottom side is equal to the value of its top side plus its height.

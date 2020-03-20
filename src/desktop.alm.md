@@ -4,6 +4,9 @@
 ### The Desktop Plane
 Finsemble exists on a desktop, a virtual unbounded Cartesian plane reﬂected on the X axis (such that the Y axis increases as you move “down”). The plane is divided into discrete pixels, which are the smallest unit of display. Since pixels are the only unit of measure in this book, it is the assumed unit for all integer values given unless otherwise speciﬁed.
 
+The origin of the plane is defined to be the top-left corner of the primary monitor. See
+[Monitors](./monitors.alm.md) for more detail.
+
 ### The Mouse
 The primary means by which a user interacts with the desktop user interaction is via the mouse, a pointer the user may move anywhere on the desktop.
 
