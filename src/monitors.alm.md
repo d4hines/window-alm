@@ -77,5 +77,7 @@ and may also adjust their resolution, scale, arrangement, and primary status.
         target = Monitor,
         resolution(Action, x) = Value.
     ```
+1. Removing a Monitor
+    
     
     
