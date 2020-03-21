@@ -32,7 +32,7 @@ in ALM for use in later modules.
 1. Coordinates:
 
     A rectangle has two coordinates, X, and Y, which together locate its top
-    left corner.
+    left corner on the desktop plane.
     ```
     total coordinate : rectangles x axes -> integers
     ```
@@ -55,42 +55,6 @@ in ALM for use in later modules.
     ```
     overlaps : rectangles x rectangles -> booleans
     ```
-1. Nearest Side
-
-    A rectangle has a nearest side to some other rectangle w.r.t. a particular direciton.
-    Nearest side is defined differently for different kinds of rectangles, so axioms will be given in later modules.
-
-    ```
-    nearestSide : rectangles x rectangles x directions -> booleans
-    ```
-1. Nearest Corner
-
-    Each of the 4 corners of a rectangle can be identified by two directions, e.g. the top-left corner
-    or the bottom-right corner (note: the tuples "bottom-right" and "right-bottom" identify the same
-    corner). The nearest corner of a rectangle A to some other rectangle B is
-    the corner of A with the shortest measure to some corner of B. The nearest corner is undefined if multiple corners are equally close.
-
-    ```
-    nearestCorner : rectangles x rectangles x directions x directions -> booleans
-    ```
-    
-1. Distance
-
-    Distance is the measure between the nearest sides of two rectangles. Distance 
-    is irreflexive, and is also undefined between overlaping rectangles. Distance is not 
-    defined between every two rectangles. Namely, it is only defined between 
-    windows and other rectangles. See the [Window](windows.alm.md) module for axioms.
-    ```
-    distance : rectangles x rectangles x integers -> booleans
-    ```
-1. Closest
-
-    A rectangle A is said to be closest to rectangle B if A is closer to B than every
-    other rectangle.
-   ```
-   closest : rectangles x rectangles -> booleans
-   ```
-
 
 ## Axioms
 1. Sides of a rectangle.
@@ -132,39 +96,4 @@ in ALM for use in later modules.
 
     ```
     overlaps(A, B) if onSameLine(A, B, x), onSameLine(A, B, y).
-    ```
-3. Nearest Corner
-
-    The nearest corner of rectangle A to rectangle B is (Dir, Dir') where:
-
-    - The nearest side of A to B is Dir.
-    - The axis of Dir' is opposite the axis of Dir.
-    - The opposite direction of Dir' is Dir''.
-    - The absolute difference between the Dir' side of A and the Dir' side of B
-        is less than the absolute difference between the Dir'' side of A and the Dir''
-        side of B.
-    
-    ```
-    nearestCorner(A, B, Dir, Dir') if
-        nearestSide(A, B, Dir),
-        axis(Dir) = AX,
-        axis(Dir') = AX'
-        oppositeAxis(AX) = AX',
-        oppositeDirection(Dir') = Dir'',
-        side(A, Dir', A1),
-        side(B, Dir', B1),
-        side(A, Dir'', A2),
-        side(B, Dir'', B2),
-        | A1 - B1 | < | A2 - B2|
-    ```
-    The order of the directions is interchangeable.
-    ```
-    nearestCorner(A, B, Dir, Dir') if nearestCorner(A, B, Dir', Dir).
-    ```
-6. Rectangle A is closest to rectangle B if the distance between A and B is the minimum distance between A and any window (closest is not symmetric).
-
-    ```
-    closest(A, B) if
-        distance(A, B, D),
-        #count { C : distance(C, B, D'), D' < D } = 0.
     ```

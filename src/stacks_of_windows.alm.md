@@ -13,7 +13,7 @@ the stack is said to be the "active tab". Only the active tab is visible.
 The active tab provides controls to switch which window is the active tab.
 
 Stacks have no representation as objects in the system. Instead, they are
-represented by the "stackedOn" relation, which forms partial ordering of
+represented by the "stacked with" relation, which forms a partial order on
 windows.
 
 ## Imports
@@ -26,22 +26,52 @@ windows.
     ```
     close_stack :: actions
         attributes
+            target : windows
     ```
+1. Stack On
+    Stacks a window on another window
+    ```
+    stack_on :: actions
+        attributes
+            source : windows
+            target : windows
 ## Functions
 ### Fluents
-1. The Primary Monitor
+#### Basic
 
-    An arbitrary monitor is chosen by the user to be the primary monitor, the top left corner
-    of which is defined to be the origin of desktop plane. All other monitors are termed
-    secondary monitors. 
+1. Stacked Above
     ```
-    primaryMonitor : monitors
-    ``` 
+    stacked_above : windows -> windows
+    ```
+
+#### Defined
+
+1. Stack Index
+
+    Stacks can be interpreted as a vector of windows.
+    Each window in the stack has an index in that vector.
+    ```
+    stack_index : windows -> integers
+    ```
+
+1. Stacked With (Transitive)
+
+    Like "stacked with", but transitive.
+
+    ```
+    stacked_with_trans : windows -> windows
+    ```
+
 ## Axioms
 
-1. Rearranging a Monitor
+1. The "Stacked With" Relation
 
-    Rearranging a monitor may cause it to take on new coordinates.
+    1. Reflexivity
+
+        Every window is stacked with itself.
+    1. 
+    
+
     ```
     occurs(Action) causes coordinate(Monitor, Dir) = Value if
         instance(Action) = rearrange_monitor,

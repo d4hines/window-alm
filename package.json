@@ -4,7 +4,8 @@
   "description": "Description of window movement in the ALM action language.",
   "main": "index.js",
   "scripts": {
-    "publish": "surge ./book window-alm.surge.sh"
+    "publish": "surge ./book window-alm.surge.sh",
+    "serve": "mdbook serve"
   },
   "repository": {
     "type": "git",
