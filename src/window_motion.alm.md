@@ -1,72 +1,31 @@
-1. Move
+# Module: Window Motion
 
-   Move is an action described by a mover, direction, and distance.
+## Overview
+## Sorts
+
+1. Move
+   Move is an action described by a moving window, direction, and distance.
 
     ```
     move :: actions
        attributes
-            mover : windows
+            moving_window : windows
             direction : directions
             distance : integers
 
     ```
-
-    1. Attract9.  Nearest Side
-    1. Between windows:
-
-        The nearest side of window A to window B is the direction D where the measure between
-        side D of A and the opposite side of B is equal to the distance between A and B.
-
-        ```
-        nearestSide(A, B, Dir) if
-            instance(A, windows),
-            instance(B, windows),
-            side(A, Dir, EdgeA),
-            oppositeDirection(Dir) = Dir',
-            side(B, Dir', EdgeB),
-            distance(A, B) = D,
-            EdgeA - EdgeB = D.
-        
-        
-        ```
-
-        In the below picture, the nearest side of A to B is right, while the nearest side of B to A is left.
-        ![](https://i.imgur.com/zYOB0rS.png)
-
-    2. Between a window and a monitor
-
-        The nearest side of window W to monitor M is the direction D where the measure between
-        side D of W and side D of M is equal to the distance between W and M.
-
-        ```
-        nearestSide(W, M, Dir) if
-            instance(W, windows),
-            instance(M, monitors),
-            side(W, Dir, EdgeW),
-            side(M, Dir, EdgeM),
-            distance(W, M) = D,
-            EdgeW - Edge = D.
-        ```
-    
-    For both monitors and windows, the nearest side relation is symmetric about opposite directions:
-    ```
-    nearestSide(A, B, Dir) if
-        oppositeDirection(Dir) = Dir',
-        nearesetSide(B, A, Dir').
-    ```
-
-    The nearest side relation is undefined between two monitors.
-
-
+## Functions
+### Fluents
+#### Basic
+#### Defined
+1. Attracts
 
     Two rectangles attract each other when they are in close proximity.
     ```
     attracts : rectangles x rectangles x directions -> booleans
     ```
+1. Final Coordinates
 
-
-    1. Final Coordinates
-    ()
     A window's final coordinates identify its coordinates after special conditions (if any) are applied.
     
     ```
@@ -92,6 +51,52 @@
     moving : windows -> booleans
     stationary : windows -> booleans
     ```
+
+## Axioms
+### 
+    1. Nearest Side
+       1. Between windows:
+
+            The nearest side of window A to window B is the direction D where the measure between
+            side D of A and the opposite side of B is equal to the distance between A and B.
+
+            ```
+            nearestSide(A, B, Dir) if
+                instance(A, windows),
+                instance(B, windows),
+                side(A, Dir, EdgeA),
+                oppositeDirection(Dir) = Dir',
+                side(B, Dir', EdgeB),
+                distance(A, B) = D,
+                EdgeA - EdgeB = D.
+            ```
+
+            In the below picture, the nearest side of A to B is right, while the nearest side of B to A is left.
+            ![](https://i.imgur.com/zYOB0rS.png)
+
+       2. Between a window and a monitor
+
+            The nearest side of window W to monitor M is the direction D where the measure between
+            side D of W and side D of M is equal to the distance between W and M.
+
+            ```
+            nearestSide(W, M, Dir) if
+                instance(W, windows),
+                instance(M, monitors),
+                side(W, Dir, EdgeW),
+                side(M, Dir, EdgeM),
+                distance(W, M) = D,
+                EdgeW - Edge = D.
+            ```
+    
+        For both monitors and windows, the nearest side relation is symmetric about opposite directions:
+        ```
+        nearestSide(A, B, Dir) if
+            oppositeDirection(Dir) = Dir',
+            nearesetSide(B, A, Dir').
+        ```
+
+        The nearest side relation is undefined between two monitors.
 
 ### Causal Laws
 1. Moving a window causes the window's coordinates to equal its current coordinates moved by the distance and in the direction of the move.

@@ -9,7 +9,10 @@ This module describes the properties of windows "at rest". The [Window Motion](w
 module will elaborate on these properties to describe how windows move in response to user action.
 
 ## Imports
+
 [Rectangles](rectangles.alm.md)
+
+[Monitors](./monitors.alm.md)
 
 ## Sorts
 1. Windows
@@ -17,9 +20,67 @@ module will elaborate on these properties to describe how windows move in respon
     ```
     windows :: rectangles
     ```
+1. Close Window
+
+    ```
+    close_window :: actions
+        target : windows
+    ```
+
+1. Toggle Maximize
+
+    ```
+    toggle_maximize :: actions
+        target : windows
+    ```
+1. Minimize
+    ```
+    minimize :: actions
+        target : windows
+    ```
+1. Unminimize
+    ```
+    restore :: actions
+        target : windows
+    ```
 
 ## Functions
 ### Fluents
+#### Basic
+
+1. Maximize State 
+    ```
+    maximized : windows -> booleans
+    ```
+1. Minimize State
+
+    Various operating system actions cause a 
+    window to become minimized. 
+    ```
+    minimized : windows -> booleans
+    ```
+
+1. Transparent
+    Various actions cause a window to become
+    transparent. While the operating system supports
+    a centigrade scale for transperency, it is represented
+    here only as a boolean: a window is transperent,
+    or it is not.
+    ```
+    transparent : windows -> booleans
+    ```
+
+1. Visible
+
+    ```
+    visible : windows -> booleans
+    ```
+
+
+
+#### Defined
+1. Distance
+
 
 #### Defined
 3. Distance is defined differently when measuring between two windows and between a window and

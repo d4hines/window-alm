@@ -145,7 +145,7 @@ in ALM for use in later modules.
         side of B.
     
     ```
-    nearestCorner(A,B, Dir, Dir') if
+    nearestCorner(A, B, Dir, Dir') if
         nearestSide(A, B, Dir),
         axis(Dir) = AX,
         axis(Dir') = AX'

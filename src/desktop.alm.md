@@ -28,6 +28,16 @@ and moves are captured indirectly through other, higher-level actions.
     ```
     directions :: { left, right, top, bottom }
     ```
+1. Monitors
+
+    There are one or more monitors, corresponding to the physical screens plugged
+    into the device running Finsemble, which are rectangular viewports into the desktop.
+    Monitors range in size from 800x600 to 4096x2160 (though in the future, they may
+    grow larger). Typical Finsemble users have between 1 and 9 monitors in a given session.
+    ```
+    monitors :: rectangles
+    ```
+
 ## Functions
 
 ### Statics

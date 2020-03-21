@@ -1,4 +1,4 @@
-# Module: Monitors
+# Module: Monitor Actions
 
 ## Overview
 
@@ -20,7 +20,7 @@
     ```
     remove_monitor :: actions
         attributes
-            new_primary_monitor : monitors
+            new_primary_monitor : monitor
     ```
 1. Rearrange
     ```
@@ -86,3 +86,64 @@
     ```
 
     ```
+
+## Overview
+
+Users may add or remove monitors at any time via native operating system function,
+and may also adjust their resolution, scale, arrangement, and primary status. These
+actions have various effects on the positions of windows. The primary motivation
+of this module is to prevent the act removing monitors from leaving windows permanently
+out of view from the user.
+
+## Imports
+
+[Monitors](./monitors.alm.md)
+
+[Windows](./windows.alm.md)
+
+## Functions
+### Fluents
+
+## Axioms
+
+1. Rearranging a Monitor
+
+    Rearranging a monitor may cause it to take on new coordinates.
+    ```
+    occurs(Action) causes coordinate(Monitor, Dir) = Value if
+        instance(Action) = rearrange_monitor,
+        new_coordinate(Action, Dir) = Value,
+        target(Action) = Monitor.
+    ```
+
+    Rearranging a monitor may also cause it to take on new dimensions.
+    ```
+    occurs(Action) causes width(Monitor) = Value if
+        instance(Action) = rearrange_monitor,
+        target = Monitor,
+        resolution(Action, x) = Value.
+
+    occurs(Action) causes height(Monitor) = Value if
+        instance(Action) = rearrange_monitor,
+        target = Monitor,
+        resolution(Action, x) = Value.
+    ```
+1. Removing a Monitor
+
+    When a user removes a monitor, all groups 
+    ```
+
+    ```
+    
+ 1. Impossible to Remove Primary Monitor
+
+    It is impossible to remove the primary monitor.
+
+    ```
+    impossible Occurs(Action) if
+        instance(Action) = remove_monitor,
+        target(Action) = primaryMonitor.
+    ```
+
+   
+
