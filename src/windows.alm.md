@@ -3,7 +3,7 @@
 ## Overview
 
 Windows are rectangular views into applications running on the desktop. They are the
-primary sort of object in the Finsemble system.
+sort of object of most interest in the Finsemble system.
 
 This module describes the properties of windows "at rest". The [Window Motion](window_motion.alm.md)
 module will elaborate on these properties to describe how windows move in response to user action.
@@ -15,32 +15,54 @@ module will elaborate on these properties to describe how windows move in respon
 [Monitors](./monitors.alm.md)
 
 ## Sorts
+### Objects
 1. Windows
 
     ```
     windows :: rectangles
     ```
-1. Close Window
+### Actions
+1. Open Window
+   
+   A user may "open" a new window, which brings the window into
+   existence on the desktop.
+    ```
+    open_window :: actions
+        target : windows
+    ```
 
+2. Close Window
+
+    A user may "close" a window, which destroys it completely from
+    the desktop.
     ```
     close_window :: actions
         target : windows
     ```
 
-1. Toggle Maximize
+3. Toggle Maximize
+
+    A user may toggle the maximized state of a window (see maximized fluent
+    below for definition).
 
     ```
     toggle_maximize :: actions
         target : windows
     ```
-1. Minimize
+4. Minimize
+
+    A user may minimize a window, hiding it from the desktop.
+
     ```
     minimize :: actions
         target : windows
     ```
-1. Unminimize
+5. Unminimize
+
+    A user may unminimize a minimized window, restoring its visibility on desktop.
+
     ```
-    restore :: actions
+    unminimize :: actions
         target : windows
     ```
 
@@ -49,18 +71,22 @@ module will elaborate on these properties to describe how windows move in respon
 #### Basic
 
 1. Maximize State 
+
+    When a window is maximized, it completely fills the monitor on which it
+    is located. 
     ```
     total maximized : windows -> booleans
     ```
 1. Minimize State
 
-    Various operating system actions cause a 
-    window to become minimized. 
+    When a window is minimized, it is hidden from the desktop.
+
     ```
     total minimized : windows -> booleans
     ```
 
 1. Transparent
+
     Various actions cause a window to become
     transparent. While the operating system supports
     a centigrade scale for transperency, it is represented
@@ -79,25 +105,23 @@ module will elaborate on these properties to describe how windows move in respon
 #### Defined
 1. Distance
 
-    Distance is the measure between the nearest sides of two rectangles. Distance 
-    is irreflexive, and is also undefined between overlaping rectangles. Distance is not 
-    defined between every two rectangles. Namely, it is only defined between 
-    windows and other rectangles. See the [Window](windows.alm.md) module for axioms.
+    Distance is the measure between the nearest sides of a window and some other rectangle.
+    Distance is irreflexive, and is also undefined between overlaping rectangles.
     ```
-    distance : rectangles x rectangles x integers -> booleans
+    distance : windows x rectangles x integers -> booleans
     ```
 1. Closest
 
-    A rectangle A is said to be closest to rectangle B if A is closer to B than every
+    Window A is said to be closest to rectangle B if A is closer to B than every
     other rectangle.
    ```
-   closest : rectangles x rectangles -> booleans
+   closest : windows x rectangles -> booleans
    ```
 
 1. Nearest Side
 
     A window has a nearest side to some other rectangle w.r.t. a particular direciton.
-    Nearest side is defined differently for different kinds of rectangles, so axioms will be given in later modules.
+    Nearest side is defined differently for different kinds of rectangles.
 
     ```
     nearestSide : windows x rectangles x directions -> booleans
@@ -107,11 +131,12 @@ module will elaborate on these properties to describe how windows move in respon
 
     Each of the 4 corners of a rectangle can be identified by two directions, e.g. the top-left corner
     or the bottom-right corner (note: the tuples "bottom-right" and "right-bottom" identify the same
-    corner). The nearest corner of a rectangle A to some other rectangle B is
-    the corner of A with the shortest measure to some corner of B. The nearest corner is undefined if multiple corners are equally close.
+    corner). The nearest corner of a window A to some other rectangle B is
+    the corner of A with the shortest measure between that corner and any corner of B. The nearest
+    corner is undefined if multiple corners are equally close.
 
     ```
-    nearestCorner : rectangles x rectangles x directions x directions -> booleans
+    nearestCorner : windows x rectangles x directions x directions -> booleans
     ```
 
 ## Axioms
@@ -140,13 +165,6 @@ module will elaborate on these properties to describe how windows move in respon
                     opposite(Dir, Dir') }
                  = D.
        ```
-       The distance between two windows is symmetric.
-
-       ```
-        distance(A, B) if
-            distance(B, A),
-            instance(A, windows).
-        ```
     2. Between a window and a monitor:
         The distance between a window W and monitor M is the smallest 
         measure between like sides of W and M (e.g. the measure from top of W
@@ -192,10 +210,100 @@ module will elaborate on these properties to describe how windows move in respon
     ```
     nearestCorner(A, B, Dir, Dir') if nearestCorner(A, B, Dir', Dir).
     ```
-6. Rectangle A is closest to rectangle B if the distance between A and B is the minimum distance between A and any window (closest is not symmetric).
+6. Closest
+
+   Rectangle A is closest to rectangle B if the distance between A and B is the minimum distance between
+   A and any window. Closest is not symmetric.
 
     ```
     closest(A, B) if
         distance(A, B, D),
         #count { C : distance(C, B, D'), D' < D } = 0.
+    ```
+
+1. Opening a Window
+   
+   Opening a window causes the following:
+    - The becomes window visible
+        ```
+        occurs(Action) causes visible(A) if
+            instance(Action, open_window),
+            target(Action) = A.
+        ```
+    - The windows coordinates become (0, 0).
+        ```
+        occurs(Action) causes coordinate(A, x) = 0 if
+            instance(Action, open_window),
+            target(Action) = A.
+        occurs(Action) causes coordinate(A, y) = 0 if
+            instance(Action, open_window),
+            target(Action) = A.
+        ```
+    - The windows height and width become 432 and 400, respectively (the
+      default height and width of the "Welcome Component" in Finsemble).
+        ```
+        occurs(Action) causes height(A) = 432 if
+            instance(Action, open_window),
+            target(Action) = A.
+        occurs(Action) causes width(A) = 400 if
+            instance(Action, open_window),
+            target(Action) = A.
+        ```
+    - The window becomes unmaximized.      
+        ```
+        occurs(Action) causes -maximized(A) if
+            instance(Action, open_window),
+            target(Action) = A.
+        ```
+    - The window becomes unminimized.
+        ```
+        occurs(Action) causes -minimized(A) if
+            instance(Action, open_window),
+            target(Action) = A.
+        ```
+    - The window becomes opaque (not transparent).
+        ```
+        occurs(Action) causes -transparent(A) if
+            instance(Action, open_window),
+            target(Action) = A.
+        ```
+
+1. Closing a window 
+   
+   Closing a window causes it to become hidden immediately. Other
+   effects will be discussed in later modules.
+
+   ```
+   occurs(Action) causes -visible(A) if
+        instance(Action, close_window),
+        target(Action) = A.
+   ```
+
+1. Toggle Maximize
+
+    ```
+    occurs(Action) causes maximized(A) if
+        instance(Action, toggle_maximize),
+        target(Action) = A,
+        -maximized(A).
+    occurs(Action) causes -maximized(A) if
+        instance(Action, toggle_maximize),
+        target(Action) = A,
+        maximized(A).
+    ```
+
+1. Minimize
+
+    ```
+    occurs(Action) causes minimized(A) if
+        instance(Action, minimize),
+        target(Action) = A.
+    ```
+
+1. Unminimize
+
+    ```
+    occurs(Action) causes -minimized(A) if
+        instance(Action, uniminimize),
+        target(Action) = A.
     ```

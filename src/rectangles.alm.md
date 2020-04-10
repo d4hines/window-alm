@@ -1,16 +1,14 @@
 # Module: Rectangles
 
 ## Overview
-Many objects in Finsemble are rectangles. We'll now describe the basic properties of rectangles
-in ALM for use in later modules.
+Many objects in Finsemble are rectangles existing on the Cartesian plane defined by the desktop.
+We'll now describe the basic properties of rectangles in ALM for use in later modules.
 
 ## Imports
 [Desktop](./desktop.alm.md)
 
 ## Sorts
 1. Rectangles
-
-    Rectangles exist on the Cartesian plane defined by the desktop.
     ```
     rectangles :: universe
     ```
@@ -31,8 +29,8 @@ in ALM for use in later modules.
     ```
 1. Coordinates:
 
-    A rectangle has two coordinates, X, and Y, which together locate its top
-    left corner on the desktop plane.
+    A rectangle has two coordinates, X, and Y, which together locate its top-left
+    corner on the desktop plane.
     ```
     total coordinate : rectangles x axes -> integers
     ```
@@ -58,7 +56,7 @@ in ALM for use in later modules.
 
 ## Axioms
 1. Sides of a rectangle.
-   1. The value of the left side of a rectangle is equal to its X coordinate, and value of the top side to its y Coordinate.
+   1. The value of the left side of a rectangle is equal to its X coordinate, and value of the top side to its Y Coordinate.
         ```
         side(Rectangle, left, Value) if coordinate(Rectangle, x) = Value.
         side(Rectangle, top, Value) if coordinate(Rectangle, y) = Value.
@@ -72,13 +70,14 @@ in ALM for use in later modules.
             width(Rectangle) = W,
             LValue + W = RValue.
 
-        side(Rectangle, right, RValue) if
-            side(Rectangle, left, LValue),
-            width(Rectangle) = W,
-            LValue + W = RValue.
+        side(Rectangle, bottom, BValue) if
+            side(Rectangle, top, TValue),
+            height(Rectangle) = H,
+            TValue + H = BValue.
         ```
 1. Rectangle A is on the same line as rectangle B w.r.t an axis AX if there is
-    a line on AX that intersects both A and B. This relation is symmetric.
+    a line on AX that intersects both A and B. This relation is symmetric, but
+    not reflexive (that is, a rectangle is not on the same line with itself).
 
     ```
     onSameLine(A, B, Axis) if
@@ -92,7 +91,7 @@ in ALM for use in later modules.
         A2 > B1.
     ```
 
-2.  A overlaps B if A is on the same line as B w.r.t to both x and y.
+2.  A overlaps B if A is on the same line as B w.r.t to both X and Y.
 
     ```
     overlaps(A, B) if onSameLine(A, B, x), onSameLine(A, B, y).

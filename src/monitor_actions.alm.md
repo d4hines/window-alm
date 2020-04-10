@@ -11,12 +11,12 @@
 [Windows](./windows.alm.md)
 
 ## Sorts
+### Actions
 1. Remove Monitor
 
     When the user removes the primary monitor, the operating system immediately
     assigns a new primary monitor. The new primary monitor must included
-    in the remove monitor action. The effects of this action are described in 
-
+    in the remove monitor action. 
     ```
     remove_monitor :: actions
         attributes
@@ -147,3 +147,64 @@ out of view from the user.
 
    
 
+# Module: Monitors
+
+## Overview
+
+## Imports
+
+[Desktop](./desktop.alm.md)
+
+[Rectangles](./rectangles.alm.md)
+
+## Sorts
+### Objects
+1. Monitors
+
+    There are one or more monitors, corresponding to the physical screens connected
+    to the device running Finsemble, which are rectangular views into the desktop.
+    Monitors range in size from 800x600 to 4096x2160 (though in the future, they may
+    grow larger). Typical Finsemble users have between 1 and 9 monitors in a given session.
+    ```
+    monitors :: rectangles
+    ```
+
+## Functions
+### Fluents
+
+## Axioms
+
+1. Rearranging a Monitor
+
+    Rearranging a monitor may cause it to take on new coordinates.
+    ```
+    occurs(Action) causes coordinate(Monitor, Dir) = Value if
+        instance(Action) = rearrange_monitor,
+        new_coordinate(Action, Dir) = Value,
+        target(Action) = Monitor.
+    ```
+
+    Rearranging a monitor may also cause it to take on new dimensions.
+    ```
+    occurs(Action) causes width(Monitor) = Value if
+        instance(Action) = rearrange_monitor,
+        target = Monitor,
+        resolution(Action, x) = Value.
+
+    occurs(Action) causes height(Monitor) = Value if
+        instance(Action) = rearrange_monitor,
+        target = Monitor,
+        resolution(Action, x) = Value.
+    ```
+1. Removing a Monitor
+
+    When a user removes a monitor, every group of windows on that
+    monitor are moved to the (possibly new) primary monitor.
+
+    Specifically, let P (dX, dY) represent the measure between the
+    top left corner of the top left window in the group and the top
+    left corner of the 
+
+    ```
+
+    ```

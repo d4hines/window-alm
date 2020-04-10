@@ -2,19 +2,25 @@
 
 ## Overview
 ### The Desktop Plane
-Finsemble exists on a desktop, a virtual unbounded Cartesian plane reﬂected on the X axis (such that the Y axis increases as you move “down”). The plane is divided into discrete pixels, which are the smallest unit of display. Since pixels are the only unit of measure in this book, it is the assumed unit for all integer values given unless otherwise speciﬁed.
+Finsemble exists on a desktop, a virtual unbounded Cartesian plane 
+reﬂected on the X axis (such that the Y axis increases as you move 
+“down” the screen). The plane is divided into discrete pixels, which 
+are the smallest unit of display. Since pixels are the only unit
+of measure in this book, it is the assumed unit for all integer
+values given unless otherwise speciﬁed.
 
 The origin of the plane is defined to be the top-left corner of the primary monitor. See
 [Monitors](./monitors.alm.md) for more detail.
 
 ### The Mouse
-The primary means by which a user interacts with the desktop user interaction is via the mouse, a pointer the user may move anywhere on the desktop.
+The primary means by which a user interacts with the desktop user is via the mouse, a pointer which may be moved around the
+desktop.
 
 Currently the mouse has no direct representation in the system - rather, clicks
 and moves are captured indirectly through other, higher-level actions.
 
 ## Sorts
-
+### Objects
 1. Axes
 
    The desktop has two axes, X, and Y.
@@ -27,15 +33,6 @@ and moves are captured indirectly through other, higher-level actions.
 
     ```
     directions :: { left, right, top, bottom }
-    ```
-1. Monitors
-
-    There are one or more monitors, corresponding to the physical screens plugged
-    into the device running Finsemble, which are rectangular viewports into the desktop.
-    Monitors range in size from 800x600 to 4096x2160 (though in the future, they may
-    grow larger). Typical Finsemble users have between 1 and 9 monitors in a given session.
-    ```
-    monitors :: rectangles
     ```
 
 ## Functions
@@ -71,7 +68,18 @@ and moves are captured indirectly through other, higher-level actions.
     directionFactor : directions -> integers
     ```
 
- ## Axioms 
+### Fluents 
+#### Basic
+1. The Primary Monitor
+
+    An arbitrary monitor is chosen by the user to be the primary monitor. The top left corner
+    of the primary monitor is defined to be the origin of desktop plane. All other monitors are
+    termed secondary monitors. 
+    ```
+    primaryMonitor : monitors
+    ``` 
+    
+## Axioms 
 
 We can now give values for the static functions. Because these are always true, we include
 them as axioms, rather than as configuration.
@@ -102,10 +110,12 @@ them as axioms, rather than as configuration.
     ```
 
 1. Directions and the Desktop Cartesian grid.
+    The value of the X and Y axis increase as you move right and down respectively,
+    and decrease as you move left and top.
 
     ```
-    directionFactor(bottom) = 1.
     directionFactor(right) = 1.
-    directionFactor(top) = -1.
+    directionFactor(bottom) = 1.
     directionFactor(left) = -1.
+    directionFactor(top) = -1.
     ```

@@ -7,6 +7,8 @@
 Links to other modules go here.
 
 ## Sorts
+### Objects
+### Actions
 
 ## Functions
 
