@@ -14,7 +14,6 @@ resize simply uses canSnap as well.
 ## Highlighting ALM
 
 Keywords
-
     - if
     - causes
     - total

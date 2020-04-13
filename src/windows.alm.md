@@ -21,6 +21,18 @@ module will elaborate on these properties to describe how windows move in respon
     ```
     windows :: rectangles
     ```
+
+1. Window Action
+
+    A window action usually has a single, targe window.
+    Other actions inherit from this action.
+
+    ```
+    window_action :: actions
+        attributes
+            target : windows
+    ```
+
 ### Actions
 1. Open Window
    

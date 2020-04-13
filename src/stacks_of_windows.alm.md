@@ -7,8 +7,10 @@ to display in a single window, akin to multiple tabs in a single internet
 browser window.
 
 Users create stacks by dragging the tab of one window and dropping it
-onto the tab region of another window. Likewise, users may remove
-a window from a stack by dropping its tab onto the desktop. Exactly one
+onto the tab of another window. We refer to this action as "tabbing"
+a window onto another window (for example, to say "the user tabbed window A onto window B"
+is to say "the user dropped the tab of window A onto the tab of window B).
+Likewise, users may remove a window from a stack by dropping its tab onto the desktop. Exactly one
 window in the stack is said to be the "active tab". Only the active tab is visible.
 The active tab provides controls to switch which window is the active tab.
 
@@ -26,55 +28,96 @@ represented by the "stacked onto" relation.
     top right of the window. This closes the clicked window, as well
     as every other window in the same stack as the clicked window.
     ```
-    close_stack :: close_window
+    close_stack :: window_action
+    ```
+1. Activate Tab
+
+    The user can click an inactive tab to cause it to become the
+    active tab. Additionally, several other actions also cause
+    the same effect; those actions inherit from this one.
+    ```
+    activate_tab :: window_action
+    ```
+1. Drag Tab
+
+    The user may drag the tab of a window anywhere on the desktop.
+    When the user drags a tab over certain areas, the area is highlighted
+    to indicate dropping the tab there will cause some effect. When dragging,
+    the coordinates of the mouse are used as the coordinates of the tab. 
+
+    ```
+    drag_tab :: action
         attributes
-            target : windows
+            coordinates : axes -> integers
     ```
 1. Drop Tab
 
     The user may drop the tab of a window onto the desktop. The effect
-    of this action depends on what the tab is dropped onto.
+    of this action depends on what the tab is dropped onto. All such
+    actions remove the window from its current position in its stack.
     ```
-    drop_tab :: actions
-        attributes
-            source : windows
+    drop_tab :: window_action
     ```
+1. Tab Onto
+    The user may tab a window onto another window.
+    This causes the first window to become stacked onto the second (see fluent
+    definitions below).
 
-1. Stack Onto
-
-    The user can stack a window A onto another window B by dropping
-    the tab of A onto the tab of B.
-    
     ```
-    stack_onto :: drop_tab
+    tab_onto :: drop_tab, activate_tab
+    ```
+1. Drop Tab onto Window Body
+
+    The user may drop the tab of a window onto the body of another window.
+    The effects of this are discussed in the
+    [Tiling Module](./tiling.alm.md).
+
+    ```
+    drop_tab_onto_body :: drop_tab
+    ```
+1. Drop Tab onto Desktop
+
+    The user may drop the tab of a window onto the desktop, moving the window
+    to the dropped on coordinates.
+
+    ```
+    drop_tab_onto_desktop :: drop_tab, activate_tab
         attributes
-            source : windows
-            target : windows
+            drop_coordinates : axes -> integers
     ```
 
 ## Functions
 ### Fluents
 #### Basic
-1. Stacked On
 
-    A window may be stacked onto at most one other window.
+1. Stacked Onto
 
     ```
     stacked_onto : windows -> windows
     ```
 
+1. Active Tab
+
+    Exactly one window in each stack is said to be the active tab.
+
+    ```
+    active_tab : windows -> booleans
+    ```
+
+
 #### Defined
+
 1. Stacked Above
 
-    A window is stacked above another window if it is stacked
-    on that window (directly or transitively).
+    The transitive closure of Stacked Onto. A window is stacked
+    above another window if it is stacked on that window or
+    stacked onto a window above that window.
 
     ```
     stacked_above : windows x windows -> booleans
     ```
 
-
-1. Stack Root
+2. Stack Root
 
     A window is said to be the root of its stack if
     it is not stacked onto any other window.
@@ -83,7 +126,7 @@ represented by the "stacked onto" relation.
     stack_root : windows -> booleans
     ```
 
-1. Stack Index
+3. Stack Index
 
     Stacks can be interpreted as an array of windows.
     Each window in the stack has an index in that array,
@@ -94,7 +137,7 @@ represented by the "stacked onto" relation.
     stack_index : windows -> integers
     ```
 
-1.  In Same Stack
+4.  In Same Stack
 
     Two windows are in the same stack if they are stacked above
     the same root. Additionally, every window is in the same stack as itself.
@@ -106,19 +149,20 @@ represented by the "stacked onto" relation.
     ``` 
 
 ## Axioms
+1. A window may only be stacked on at most one other window.
 
+    ```
+    false if
+        instance(A, windows),
+        #count { B : stacked_on(A, B) } > 1. 
+    ```
 1. Stacked Above.
-
+    Stacked Above is the transitive closure of Stacked Onto.
     ```
     stacked_above(A, B) if stacked_onto(A, B).
-    ```
-
-    Stacked above is transitive.
-    ```
     stacked_above(A, B) if stacked_above(A, C), stacked_above(C, B).
     ```
-
-1. Stacked Root
+2. Stacked Root
 
     A window is a stack root if it is not stacked onto any other window.
 
@@ -128,7 +172,7 @@ represented by the "stacked onto" relation.
         #count { B : stacked_onto(A, B) } = 0.
     ```
 
-1. Stack Index
+3. Stack Index
 
     The root of a stack has index 0.
     ```
@@ -142,7 +186,7 @@ represented by the "stacked onto" relation.
         stacked_onto(A, B).
     ```
 
-1. In Same Stack
+4. In Same Stack
 
    A root is in the same stack as every window above it.
    ```
@@ -156,93 +200,188 @@ represented by the "stacked onto" relation.
    in_same_stack(A, B) if stacked_with(A, C), stacked_with(C, B).
    ```
 
-1. Closing a Stack
+1. There is always exactly one active tab in a stack.
 
+    ```
+    false if ...
+    TODO - Not sure how to express this as a state constraint.
+    ```
+
+5. Closing a Stack
+
+    Closing the stack causes every window in the stack to become hidden.
     ```
     occurs(Action) causes -visible(W') if
         instance(Action, close_stack),
         target(Action) = W,
         in_same_stack(W, W').
     ```
-1. Dropping a Tab
+1. Activating a Tab
 
-    Dropping a tab somewhere on t
-    that tab from
-    If window A is stacked onto B, stacking A onto some other
-    window causes A to no longer be stacked onto B.
-   ``` 
+    When the user activates a tab, the target window becomes
+    active, and the previously visible window
+    becomes inactive.
 
-1. Stack Onto
-
-    It is impossible for a window to stack onto itself.
     ```
-    impossible occurs(Action) if 
-        instance(Action, stack_onto),
-        source(Action) = A,
+    occurs(Action) causes active_tab(A) if
+        instance(Action, activate_tab),
         target(Action) = A.
-    ```
-    It is also impossible for a window to stack onto the
-    window on which it is already stacked.
-    ```
-    impossible occurs(Action) if 
-        instance(Action, stack_onto),
-        source(Action) = A,
-        target(Action) = B,
-        stacked_on(A, B).
-    ```
-
-    Stacking a window A onto B causes A to become
-    stacked onto B.
-
-    ```
-    occurs(Action) causes stacked_onto(A, B) if
-        instance(Action, stack_onto).
-        source(Action) = A,
-        target(Action) = B.
-    ```
-
-    If window A is stacked onto B, stacking A onto some other
-    window causes A to no longer be stacked onto B.
-    ```
-    occurs(Action) causes -stacked_onto(A, B) if
-        instance(Action, stack_onto),
+    occurs(Action) causes -active_tab(B) if
+        instance(Action, activate_tab),
         target(Action) = A,
-        stacked_onto(A, B).
+        in_same_stack(A, B),
+        active_tab(B)>
     ```
-
-    Stacking a window onto another "inserts" that
-    window into the target's array. That is,
-    stacking A onto B causes C to become
-    stacked onto A if C was stacked onto B.
+1. The active tab is visible. All other windows are hidden.
 
     ```
-    occurs(Action) causes stacked_onto(C, A) if
-        instance(Action, stack_onto).
-        source(Action) = A,
-        target(Action) = B,
-        stacked_onto(C, B).
+    visible(A) if active_tab(A).
+    -visible(A) if -active_tab(A).
     ```
+    
+6. Dropping a Tab
 
-    Stacking a window causes the source's array to "shift" down.
-    That is, stacking window A onto some other window causes
-    B to become stacked onto C if: 
-    - A is stacked onto C,
-    - B is stacked onto A.
+    1. Dropping the tab of a window causes:
+
+       - The target window to no longer be stacked onto the window onto
+          which it was previously stacked.
+            ```
+            occurs(Action) causes -stacked_onto(A, B) if
+                instance(Action, drop_tab),
+                target(Action) = A,
+                stacked_onto(A, B).
+            ```
+
+       - Any other window stacked onto that window to no longer
+         be stacked onto that window.
+
+            ```
+            occurs(Action) causes -stacked_onto(B, A) if
+                instance(Action, drop_tab),
+                target(Action) = A,
+                stacked_onto(B, A).
+            ```
+    
+    2. Dropping the tab of a window causes that window's array
+    to "shift" down. That is, dropping the tab of window A
+    onto some other window causes B to become stacked onto C if: 
+       - A is stacked onto C,
+       - B is stacked onto A.
+        ```
+        occurs(Action) causes stacked_onto(B, C) if
+            instance(Action, drop_tab),
+            target(Action, A),
+            stacked_on(A, C),
+            stacked_on(B, A)
+        ```
+
+    3. Dropping the tab of window A causes window B to
+        become the active tab if
+        - A is the active tab.
+        - A is not the root of the stack.
+        - A is in the same stack as B.
+        - B has an index 1 less than A.
+
+        ```
+        occurs(Action) causes stacked_onto(B, C) if
+            instance(Action, drop_tab),
+            target(Action, A),
+            -stack_root(A),
+            in_same_stack(A, B),
+            stack_index(A, AIndex),
+            stack_index(B, BIndex),
+            AIndex - 1 = BIndex.
+        ```
+        Similarly, dropping the tab of window A causes window B to
+        become the active tab if
+        - A is the active tab.
+        - A is the root of the stack.
+        - B has an index 1 more than A.
+        ```
+        occurs(Action) causes stacked_onto(B, C) if
+            instance(Action, drop_tab),
+            target(Action, A),
+            stack_root(A),
+            in_same_stack(A, B),
+            stack_index(A, AIndex),
+            stack_index(B, BIndex),
+            AIndex + 1 = BIndex.
+        ```
+7. Tabbing
+
+    1. It is impossible to tab a window onto itself.
+
+        ```
+        impossible occurs(Action) if
+            instance(Action, tab_onto),
+            target(Action) = A,
+            drop_target(Action) = A.
+        ```
+
+    2. Tabbing window A onto window B
+        causes A to become stacked onto B.
+
+        ```
+        occurs(Action) causes stacked_onto(A, B) if
+            instance(Action, tab_onto),
+            target(Action) = A,
+            drop_target(Action) = B.
+        ```
+
+    3. Tabbing a window onto another window "inserts" that
+        window into the target's array. That is,
+        tabbing A onto B causes C to become
+        stacked onto A if C was stacked onto B.
+
+        ```
+        occurs(Action) causes stacked_onto(C, A) if
+            instance(Action, tab_onto).
+            target(Action) = A,
+            drop_target(Action) = B.
+            stacked_onto(C, B).
+        ```
+
+        **Note**: Because, when tabbing window A onto window B, A is inserted "above"
+        B, it's therefore impossible for users to prepend to the stack, i.e  move
+        a tab to the very beginning of the stack in a single operation. If we inserted A
+        "below" B, this would allow users to prepend to the stack, but appending would 
+        likewise be impossible. It will always take up to two moves to move a tab to particular
+        index.
+
+    4. Tabbing a window A onto a window B causes A to assume the size and coordinates of B.
+
+        ```
+        occurs(Action) causes coordinate(A, Axis) = C if
+            instance(Action, tab_onto).
+            target(Action) = A,
+            drop_target(Action) = B.
+            coordinate(B, Axis) = C.
+
+        occurs(Action) causes height(A) = H if
+            instance(Action, tab_onto).
+            target(Action) = A,
+            drop_target(Action) = B.
+            height(B) = H.
+
+        occurs(Action) causes width(A) = W if
+            instance(Action, tab_onto).
+            target(Action) = A,
+            drop_target(Action) = B.
+            width(B) = W.
+        ```
+8. Dropping a tab onto the desktop
+
+    Dropping the tab of a window onto the desktop causes that window
+    causes that window to assume the coordinates of the point dropped on.
+    The window also becomes visible if it was not.
+
     ```
-    occurs(Action) causes stacked_onto(B, C) if
-        instance(Action, stack_onto),
-        stacked_on(A, C),
-        stacked_on(B, A)
+    occurs(Action) causes coordinates(A, Axis) = C if
+            instance(Action, drop_tab_onto_desktop).
+            target(Action) = A,
+            drop_coordaintes(Action, Axis) = C.
     ```
-
-    **Note**: Because, when stacking window A onto window B, A is inserted "above"
-    B, it's therefore impossible for users to prepend to the stack, i.e  move
-    a tab to the very beginning of the stack in a single operation. If we inserted A
-    "below" B, this would allow users to prepend to the stack, but appending would 
-    likewise be impossible. It will always take up to two moves to move a tab to particular
-    index.
-
-1. Closing a Window in a Stack
+9.  Closing a Window in a Stack
 
     Closing a window in a stack causes every other window above it in the stack to
     "shift" down. That is, closing window A causes B to become stacked onto
@@ -257,8 +396,3 @@ represented by the "stacked onto" relation.
        stacked_onto(A, C),
        stacked_onto(B, A).
     ```
-
-
-TODO
-- Swap
-- Drop tab
